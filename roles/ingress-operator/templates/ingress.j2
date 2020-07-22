@@ -1,0 +1,9 @@
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: default
+  namespace: openshift-ingress-operator
+spec:
+  replicas: {{ ingress_replicas }}
+  defaultCertificate:
+    name: {{ ingress_tls_secret_name }}

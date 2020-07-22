@@ -1,0 +1,63 @@
+- name: OpenShift Cluster Post Install Tasks
+  hosts: localhost
+  vars_files:
+    - vars/main.yaml
+    - vault.yaml
+  tasks:
+    - name: Update CA Certs
+      include_role:
+        name: proxy
+      tags:
+        - proxy
+
+    - name: Create Additional Worker MCPs
+      include_role:
+        name: worker-mcp
+      loop: "{{ additional_worker_mcp }}"
+      loop_control:
+        loop_var: mitem
+        
+    - name: Configure OAuth
+      include_role:
+        name: oauth-ldap
+      tags:
+        - oauth-ldap
+
+    - name: Label Nodes
+      include_role:
+        name: label-nodes
+      loop: "{{ nodes }}"
+      loop_control:
+        loop_var: nitem
+      tags:
+        - label-nodes
+
+    - name: Install Operators
+      include_role:
+        name: install-operators
+      loop: "{{ operators }}"
+      loop_control:
+        loop_var: oitem
+      tags:
+        - install-operators
+    
+    - name: Create TLS Secrets
+      include_role:
+        name: tls-secret
+      loop: "{{ tls_secrets }}"
+      loop_control:
+        loop_var: tls_secret
+      tags:
+        - tls-secrets
+
+    - name: Update Default Ingress Controller
+      include_role:
+        name: ingress-operator
+      tags:
+        - ingress-operator
+
+    - name: Update API Server
+      include_role:
+        name: apiserver
+      tags:
+        - apiserver

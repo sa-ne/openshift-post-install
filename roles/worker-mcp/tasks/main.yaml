@@ -1,0 +1,4 @@
+- name: Create Additional Worker MCPs
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/machineconfigpool.j2') }}"

@@ -1,0 +1,9 @@
+# 4 spaces required in front of each line in ca-bundle.crt
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle
+  namespace: openshift-config
+data:
+  ca-bundle.crt: |
+{{ proxy_user_ca_bundle_cert_data }}

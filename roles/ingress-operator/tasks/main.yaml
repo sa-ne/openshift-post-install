@@ -1,0 +1,5 @@
+- name: Update Default Ingress Controller
+  k8s:
+    state: present
+    apply: yes
+    definition: "{{ lookup('template', 'templates/ingress.j2') }}"

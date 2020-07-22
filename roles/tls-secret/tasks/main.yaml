@@ -1,0 +1,4 @@
+- name: Create TLS Secret
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/secret.j2') }}"
