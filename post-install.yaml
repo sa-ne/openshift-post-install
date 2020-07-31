@@ -15,7 +15,7 @@
         name: worker-mcp
       loop: "{{ additional_worker_mcp }}"
       loop_control:
-        loop_var: mitem
+        loop_var: mcp
         
     - name: Configure OAuth
       include_role:
@@ -28,7 +28,7 @@
         name: label-nodes
       loop: "{{ nodes }}"
       loop_control:
-        loop_var: nitem
+        loop_var: node
       tags:
         - label-nodes
 
@@ -61,3 +61,24 @@
         name: apiserver
       tags:
         - apiserver
+
+    - name: Create Local Volumes
+      include_role:
+        name: localvolumes
+      loop: "{{ localvolumes }}"
+      loop_control:
+        loop_var: volume
+      tags:
+        - localvolumes
+    
+    - name: Create Storage Cluster Service
+      include_role:
+        name: storagecluster
+      tags:
+        - storagecluster
+
+    - name: Configure Registry
+      include_role:
+        name: registry
+      tags:
+        - registry

@@ -1,14 +1,44 @@
 ---
-- name: Debug
+- name: Debug Node Label Command
   debug:
-    msg: "oc label node {{ nitem.name }} {{ label }}"
-  loop: "{{ nitem.labels }}"
+    msg: "oc label node {{ node.name }} {{ label }}"
+  loop: "{{ node.labels }}"
   loop_control:
     loop_var: label
+  when:
+    - node.labels is defined
+  tags:
+    - label-nodes
 
 - name: Label Node
   command:
-    cmd: "{{ oc_bin }} --kubeconfig {{ oc_kubeconfig }} label node {{ nitem.name }} {{ label }} --overwrite"
-  loop: "{{ nitem.labels }}"
+    cmd: "{{ oc_bin }} --kubeconfig {{ oc_kubeconfig }} label node {{ node.name }} {{ label }} --overwrite"
+  loop: "{{ node.labels }}"
   loop_control:
     loop_var: label
+  when:
+    - node.labels is defined
+  tags:
+    - label-nodes
+
+- name: Debug Node Taint Command
+  debug:
+    msg: "oc adm taint node {{ node.name }} {{ taint }}"
+  loop: "{{ node.taints }}"
+  loop_control:
+    loop_var: taint
+  when:
+    - node.taints is defined
+  tags:
+    - label-nodes
+
+- name: Taint Node
+  command:
+    cmd: "{{ oc_bin }} --kubeconfig {{ oc_kubeconfig }} adm taint node {{ node.name }} {{ taint }} --overwrite"
+  loop: "{{ node.taints }}"
+  loop_control:
+    loop_var: taint
+  when:
+    - node.taints is defined
+  tags:
+    - label-nodes

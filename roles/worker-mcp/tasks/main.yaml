@@ -2,3 +2,5 @@
   k8s:
     state: present
     definition: "{{ lookup('template', 'templates/machineconfigpool.j2') }}"
+  tags:
+    - mcp

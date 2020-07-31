@@ -1,13 +1,13 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: {{ mitem.name }}
+  name: {{ mcp.name }}
 spec:
   machineConfigSelector:
     matchExpressions:
-      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,{{ mitem.name }}]}
-  maxUnavailable: {{ mitem.maxUnavailable }}
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,{{ mcp.name }}]}
+  maxUnavailable: {{ mcp.maxUnavailable }}
   nodeSelector:
     matchLabels:
-      {{ mitem.label.key }}: {{ mitem.label.value }}
+      {{ mcp.label.key }}: {{ mcp.label.value }}
   paused: false

@@ -1,0 +1,19 @@
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+spec:
+  managementState: {{ registry.state }}
+  replicas: {{ registry.replicas }}
+  storage:
+    pvc:
+      claim: {{ registry.pvc_name }}
+  nodeSelector:
+    node-role.kubernetes.io/infra: ''
+  tolerations:
+  - effect: NoSchedule
+    key: infra
+    value: reserved
+  - effect: NoExecute
+    key: infra
+    value: reserved

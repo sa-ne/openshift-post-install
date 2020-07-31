@@ -2,3 +2,5 @@
   k8s:
     state: present
     definition: "{{ lookup('template', 'templates/secret.j2') }}"
+  tags:
+    - tls-secrets

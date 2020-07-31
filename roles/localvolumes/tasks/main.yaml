@@ -1,0 +1,19 @@
+- name: Create LocalVolume Resource
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/localvolume.j2') }}"
+  tags:
+    - localvolumes
+
+- name: Wait for Persistent Volumes to Become Available
+  k8s_info:
+    api_version: v1
+    kind: PersistentVolume
+    namespace: openshift-local-storage
+  retries: 72
+  delay: 5
+  register: pvc
+  until:
+    - (pvc.resources | count) == (volume.devicePaths | count)
+  tags:
+    - localvolumes

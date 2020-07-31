@@ -1,0 +1,14 @@
+- name: Create Registry PVC
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/registry-pvc.j2') }}"
+  tags:
+    - registry
+
+- name: Update Registry Configuration
+  k8s:
+    state: present
+    apply: yes
+    definition: "{{ lookup('template', 'templates/registry.j2') }}"
+  tags:
+    - registry

@@ -1,13 +1,19 @@
 - name: Source CA Certificate
   set_fact:
     proxy_user_ca_bundle_cert_data: "{{ lookup('file', 'files/proxy-user-ca-bundle.crt') }}"
+  tags:
+    - proxy
 
 - name: Create ConfigMap for CA Certificate
   k8s:
     state: present
     definition: "{{ lookup('template', 'templates/proxy-user-ca-bundle-config-map.j2') }}"
+  tags:
+    - proxy
 
 - name: Create Proxy Config for CA Certificate
   k8s:
     state: present
     definition: "{{ lookup('template', 'templates/proxy.j2') }}"
+  tags:
+    - proxy

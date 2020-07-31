@@ -7,3 +7,14 @@ spec:
   replicas: {{ ingress_replicas }}
   defaultCertificate:
     name: {{ ingress_tls_secret_name }}
+  nodePlacement:
+    nodeSelector:
+      matchLabels:
+        node-role.kubernetes.io/infra: ""
+    tolerations:
+    - effect: NoSchedule
+      key: infra
+      value: reserved
+    - effect: NoExecute
+      key: infra
+      value: reserved

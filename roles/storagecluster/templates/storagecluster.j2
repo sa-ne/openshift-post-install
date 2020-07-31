@@ -1,0 +1,29 @@
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  namespace: {{ storagecluster.namespace }}
+  name: {{ storagecluster.name }}
+spec:
+  manageNodes: {{ storagecluster.manage_nodes }}
+  monPVCTemplate:
+    spec:
+      storageClassName: {{ storagecluster.mon_storage_class }}
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ storagecluster.mon_pvc_size }}
+  storageDeviceSets:
+  - name: {{ storagecluster.osd_device_set_name }}
+    count: {{ storagecluster.osd_device_set_count }}
+    placement: {}
+    dataPVCTemplate:
+      spec:
+        storageClassName: {{ storagecluster.osd_storage_class }}
+        accessModes:
+        - ReadWriteOnce
+        volumeMode: Block
+        resources:
+          requests:
+            storage: {{ storagecluster.osd_pvc_size }}
+    portable: {{ storagecluster.osd_portable }}

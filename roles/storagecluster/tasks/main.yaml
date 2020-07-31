@@ -1,0 +1,86 @@
+- name: Wait for OpenShift Storage Operator
+  k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: openshift-storage
+    label_selectors:
+      - name = ocs-operator
+  register: pod
+  retries: 72
+  delay: 5
+  until:
+    - pod.resources[0].status.phase == "Running"
+  tags:
+    - storagecluster
+
+- name: Wait for Rook/Ceph Operator
+  k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: openshift-storage
+    label_selectors:
+      - app = rook-ceph-operator
+  register: pod
+  retries: 72
+  delay: 5
+  until:
+    - pod.resources[0].status.phase == "Running"
+  tags:
+    - storagecluster
+
+- name: Wait for Noobaa Operator
+  k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: openshift-storage
+    label_selectors:
+      - noobaa-operator = deployment
+  register: pod
+  retries: 2
+  delay: 5
+  until:
+    - pod.resources[0].status.phase == "Running"
+  tags:
+    - storagecluster
+  
+- name: Create StorageCluster Resource
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/storagecluster.j2') }}"
+  tags:
+    - storagecluster
+
+- name: Wait for Storage Cluster to Become Available
+  k8s_info:
+    api_version: ocs.openshift.io/v1
+    kind: StorageCluster
+    name: "{{ storagecluster.name }}"
+    namespace: "{{ storagecluster.namespace }}"
+  retries: 72
+  delay: 5
+  register: sc
+  until:
+    - sc.resources[0].status.phase == "Ready"
+  tags:
+    - storagecluster
+
+- name: Apply Tolerations for CSI DaemonSets
+  k8s:
+    state: present
+    apply: yes
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ storagecluster.namespace }}"
+      spec:
+        template:
+          spec:
+            tolerations:
+              - operator: Exists
+  with_items:
+    - csi-cephfsplugin
+    - csi-rbdplugin
+  tags:
+    - storagecluster
