@@ -82,3 +82,9 @@
         name: registry
       tags:
         - registry
+
+    - name: Configure Hub Clusters
+      include_role:
+        name: acm-add-spoke
+      tags:
+        - acm-add-spoke
