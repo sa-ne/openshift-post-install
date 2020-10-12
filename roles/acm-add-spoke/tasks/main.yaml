@@ -4,7 +4,7 @@
   when:
     - acm.acm_hub_kubeconfig is not defined
 
-- name: Create ManagedCluster
+- name: Create ManagedCluster Resource
   k8s:
     kubeconfig: "{{ acm.acm_hub_kubeconfig }}"
     state: present
@@ -26,7 +26,7 @@
   tags:
     - acm-add-spoke
   
-- name: Create KlusterletAddonConfig
+- name: Create KlusterletAddonConfig Resource
   k8s:
     kubeconfig: "{{ acm.acm_hub_kubeconfig }}"
     state: present
