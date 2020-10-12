@@ -49,6 +49,26 @@ nodes:
 operators:
   - namespace:
       metadata:
+        name: openshift-acm
+    operatorgroup:
+      metadata:
+        name: openshift-acm-operatorgroup
+        namespace: openshift-acm
+      spec:
+        targetNamespaces:
+          - openshift-acm
+    subscription:
+      metadata:
+        name: acm-operator-subscription
+        namespace: openshift-acm
+      spec:
+        sourceNamespace: openshift-marketplace
+        source: redhat-operators
+        channel: release-2.0
+        installPlanApproval: Automatic
+        name: advanced-cluster-management
+  - namespace:
+      metadata:
         name: openshift-storage
         labels:
           openshift.io/cluster-monitoring: 'true'
@@ -64,7 +84,7 @@ operators:
         name: ocs-subscription
         namespace: openshift-storage
       spec:
-        channel: stable-4.4
+        channel: stable-4.5
         name: ocs-operator
         source: redhat-operators
         sourceNamespace: openshift-marketplace
@@ -144,9 +164,9 @@ localvolumes:
             values:
               - ''
     devicePaths:
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29298dd55a14c15e8f49d287e31
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29805a74d74c958feddd2f05e4f
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29b5e0f72d158daeddb8e4a6225
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29dd540eb5aef62f18001928f5d
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c293a18b4552491777af63c9e384
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29c4383ca8af648b8ab247a104c
 storagecluster:
   name: storagecluster
   namespace: openshift-storage

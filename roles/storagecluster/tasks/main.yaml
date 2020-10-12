@@ -50,13 +50,13 @@
   tags:
     - storagecluster
 
-- name: Wait for Storage Cluster to Become Available
+- name: Wait 20 Minutes for Storage Cluster to Become Available
   k8s_info:
     api_version: ocs.openshift.io/v1
     kind: StorageCluster
     name: "{{ storagecluster.name }}"
     namespace: "{{ storagecluster.namespace }}"
-  retries: 72
+  retries: 300
   delay: 5
   register: sc
   until:

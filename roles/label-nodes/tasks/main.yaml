@@ -30,7 +30,7 @@
   when:
     - node.taints is defined
   tags:
-    - label-nodes
+    - taint-nodes
 
 - name: Taint Node
   command:
@@ -41,4 +41,4 @@
   when:
     - node.taints is defined
   tags:
-    - label-nodes
+    - taint-nodes

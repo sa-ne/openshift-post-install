@@ -1,0 +1,7 @@
+acm:
+  acm_hub_kubeconfig: /home/chris/upi/vmware-upi/auth/kubeconfig
+  spokes:
+    - name: acm-managed-1
+      kubeconfig: /home/chris/upi/acm-managed-1/auth/kubeconfig
+#    - name: acm-managed-2
+#      kubeconfig: /home/chris/upi/acm-managed-2/auth/kubeconfig
