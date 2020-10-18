@@ -1,9 +1,32 @@
 - name: OpenShift Cluster Post Install Tasks
   hosts: localhost
   vars_files:
-    - vars/main.yaml
     - vault.yaml
   tasks:
+    - name: Create Namespaces
+      include_role:
+        name: namespaces
+      loop: "{{ namespaces }}"
+      loop_control:
+        loop_var: namespace
+      tags:
+        - namespaces
+    
+    - name: Create TLS Secrets
+      include_role:
+        name: tls-secret
+      loop: "{{ tls_secrets[cluster_name] }}"
+      loop_control:
+        loop_var: tls_secret
+      tags:
+        - tls-secrets
+
+    - name: Deploy "Sealed Secrets" for Kubernetes
+      include_role:
+        name: sealed-secrets
+      tags:
+        - sealed-secrets
+
     - name: Update CA Certs
       include_role:
         name: proxy
@@ -40,15 +63,6 @@
         loop_var: oitem
       tags:
         - install-operators
-    
-    - name: Create TLS Secrets
-      include_role:
-        name: tls-secret
-      loop: "{{ tls_secrets }}"
-      loop_control:
-        loop_var: tls_secret
-      tags:
-        - tls-secrets
 
     - name: Update Default Ingress Controller
       include_role:

@@ -1,0 +1,6 @@
+- name: Create Namespace
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'templates/namespace.j2') }}"
+  tags:
+    - namespaces

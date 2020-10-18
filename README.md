@@ -14,9 +14,11 @@ The following capabilities are included:
 |install-operators|Create Namespace, OperatorGroup and Subscription resources for a list of operators.|
 |label-nodes|Assign a set of labels and taints to nodes.|
 |localvolumes|Use the Local Storage Operator to create LocalVolume resources and verify associated PersistentVolumes.|
+|namespaces|Create namespaces and assign appropriate labels.|
 |oauth-ldap|Configure the cluster OAuth resource to leverage LDAP. Assign a list of users the cluster-admin role.|
 |proxy|Create additional CA trust ConfigMap resource. Update cluster Proxy resource to include additional CA trust bundle.|
 |registry|Create registry PVC for persistent storage. Adjust replicas. Adjust pod placement and apply infrastructure node tolerations.|
+|sealed-secrets|Deploy Bitnami Labs "Sealed Secrets" for Kubernetes w/ custom TLS certificates.|
 |storagecluster|Verify OCS, Rook/Ceph and Noobaa operator deployments. Create StorageCluster resource (OCS deployment). Apply universal toleration for CSI DaemonSet resources.|
 |tls-secret|Create TLS Secret resources.|
 |worker-mcp|Create additional user defined worker MachineConfigPools (e.g. nfra and ocs).|
@@ -46,54 +48,39 @@ If you plan on customizing the TLS certificates in your cluster, create another 
 
 |Variable|Description|
 |:---|:---|
-|tls_secrets|A list of dictionaries container information about TLS certificates (name, key, certificate, etc)
+|tls_secrets|A set of dictionaries containing information about TLS certificates (name, key, certificate, labels, etc.) per cluster.|
 
-Example vault contents:
+Example vault contents (certificate and key data should already be base64 encoded):
 
 ```yaml
 tls_secrets:
-- name: api-cert
-  namespace: openshift-config
-  cert: |
-    -----BEGIN CERTIFICATE-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END CERTIFICATE-----
-    -----BEGIN CERTIFICATE-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END CERTIFICATE-----
-  key: |
-    -----BEGIN PRIVATE KEY-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END PRIVATE KEY-----
-- name: wildcard-cert
-  namespace: openshift-ingress
-  cert: |
-    -----BEGIN CERTIFICATE-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END CERTIFICATE-----
-    -----BEGIN CERTIFICATE-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END CERTIFICATE-----
-  key: |
-    -----BEGIN PRIVATE KEY-----
-    p7WhF8pNtu0hebflAGSSufP7piMFTfnue32vuEUZ4bcW/VUFZRGXl8LKNK5j39Ih
-    S4eahQGeyqoPPi7mlowg2lKF5u/MQg/RtOOTDSOiZqINUoj1tHV7NAlGQIJ7i3gZ
-    ATKADskOsYX7BBy67uAQ+tf4a7csBw==
-    ...
-    -----END PRIVATE KEY-----
+  vmware-upi:
+    - name: api-cert
+      namespace: openshift-config
+      crt: LS0tLS1CRUdJTiB...
+      key: LS0tLS1CRUdJTiB...
+    - name: wildcard-cert
+      namespace: openshift-ingress
+      crt: LS0tLS1CRUdJTiB...
+      key: LS0tLS1CRUdJTiB...
+  acm-managed-1:
+    - name: sealed-secrets-custom-key
+      namespace: sealed-secrets
+      crt: LS0tLS1CRUdJTiB...
+      key: LS0tLS1CRUdJTiB...
+      labels:
+        - key: sealedsecrets.bitnami.com/sealed-secrets-key
+          value: active
+        - key: manager
+          value: controller
+        - key: operation
+          value: Update
+```
+
+## Running the Playbooks
+
+Typically a minimal run will include the `namespaces` and `tls-secrets` roles. Here is an example with those roles plus the `sealed-secrets` role:
+
+```bash
+$ ansible-playbook --ask-vault-pass -e @tls-secrets.yaml -e vars/cluster-name.yaml --tags namespaces,tls-secrets,sealed-secrets post-install.yaml
 ```
