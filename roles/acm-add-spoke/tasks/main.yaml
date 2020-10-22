@@ -60,6 +60,9 @@
   tags:
     - acm-add-spoke
 
+# Need to add logic to wait for import secret to get created...this can take
+# as long as 20 seconds after ManagedCluster CR is created.
+
 - name: Gather Installation Payloads
   k8s_info:
     kubeconfig: "{{ acm.acm_hub_kubeconfig }}"
