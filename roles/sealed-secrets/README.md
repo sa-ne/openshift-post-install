@@ -65,3 +65,25 @@ To deploy the sealed secrets controller, run the `post-install.yaml` playbook as
 ```shell
 $ ansible-playbook --ask-vault-pass -e @tls-secrets.yaml -e @vars/acm-managed-1.yaml --tags namespaces,tls-secrets,sealed-secrets post-install.yaml
 ```
+
+# Creating SealedSecret CRs
+
+We can create a SealedSecret CR with `kubeseal` and the target clusters public key. Imagine the following secret stored as `my-secret.yaml`.
+
+```yaml
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: my-cert
+  namespace: my-project
+data:
+  tls.crt: LS0tLS1C==
+  tls.key: LS0tLS1CJD3r==
+```
+
+To generate the SealedSecret CR to securely store the secret defined in `my-secret.yaml`, run the following command:
+
+```shell
+$ kubeseal --cert /path/to/cluster.crt --scope namespace-wide --format yaml < my-secret.yaml > my-sealed-secret.yaml
+```
