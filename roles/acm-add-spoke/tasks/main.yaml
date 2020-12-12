@@ -52,7 +52,7 @@
           enabled: "{{ spoke.certPolicyController | default(true) }}"
         iamPolicyController:
           enabled: "{{ spoke.iamPolicyController | default(true) }}"
-        version: "2.0"
+        version: "2.1"
   register: klusterletaddonconfig
   loop: "{{ acm.spokes }}"
   loop_control:

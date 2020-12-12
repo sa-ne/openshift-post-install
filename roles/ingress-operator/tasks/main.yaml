@@ -4,4 +4,4 @@
     apply: yes
     definition: "{{ lookup('template', 'templates/ingress.j2') }}"
   tags:
-    - ingress-controller
+    - ingress-operator

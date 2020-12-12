@@ -39,6 +39,8 @@
       loop: "{{ additional_worker_mcp }}"
       loop_control:
         loop_var: mcp
+      tags:
+        - mcp
         
     - name: Configure OAuth
       include_role:
@@ -97,7 +99,13 @@
       tags:
         - registry
 
-    - name: Configure Hub Clusters
+    - name: Configure Hub Cluster
+      include_role:
+        name: acm-add-hub
+      tags:
+        - acm-add-hub
+
+    - name: Configure Spoke Clusters
       include_role:
         name: acm-add-spoke
       tags:

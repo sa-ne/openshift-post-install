@@ -1,0 +1,81 @@
+---
+oc_bin: "/home/chris/bin/oc"
+oc_kubeconfig: "/home/chris/upi/alice/auth/kubeconfig"
+
+oauth_ldap_ca_cert: /etc/ipa/ca.crt
+oauth_ldap_ca_cm_name: ca-config-map
+oauth_ldap_url: ldap://idm1.umbrella.local/cn=users,cn=accounts,dc=umbrella,dc=local?uid
+oauth_ldap_secret_name: ldap-secret
+oauth_ldap_provider_name: "Umbrella IdM"
+
+cluster_name: alice
+cluster_base_domain: ocp.pwc.umbrella.local
+cluster_admin_users:
+  - chris
+
+ingress_replicas: 3
+ingress_tls_secret_name: wildcard-cert
+
+api_tls_secret_name: api-cert
+
+acm:
+  hub_name: multiclusterhub
+  hub_namespace: open-cluster-management
+  hub_pull_secret_name: ocp-pull-secret
+  hub_kubeconfig: /home/chris/upi/alice/auth/kubeconfig
+  hub_availability_config: High
+  hub_byo_ingress_tls_secret_name: byo-ingress-tls-secret
+  hub_byo_ca_cert_name: byo-ca-cert
+  hub_apply_byo_tls: True
+
+additional_worker_mcp:
+  - name: infra
+    maxUnavailable: 1
+    label:
+      key: node-role.kubernetes.io/infra
+      value: "\"\""
+nodes:
+  - name: infra-node0.alice.ocp.pwc.umbrella.local
+    labels:
+      - "node-role.kubernetes.io/infra="
+      - "node-role.kubernetes.io/worker-"
+  - name: infra-node1.alice.ocp.pwc.umbrella.local
+    labels:
+      - "node-role.kubernetes.io/infra="
+      - "node-role.kubernetes.io/worker-"
+  - name: infra-node2.alice.ocp.pwc.umbrella.local
+    labels:
+      - "node-role.kubernetes.io/infra="
+      - "node-role.kubernetes.io/worker-"
+
+namespaces:
+  - name: open-cluster-management
+    annotations:
+      - key: "openshift.io/node-selector"
+        value: "node-role.kubernetes.io/infra="
+
+operators:
+  - operatorgroup:
+      metadata:
+        name: open-cluster-management-operatorgroup
+        namespace: open-cluster-management
+      spec:
+        targetNamespaces:
+          - open-cluster-management
+    subscription:
+      metadata:
+        name: open-cluster-management-operator-subscription
+        namespace: open-cluster-management
+      spec:
+        sourceNamespace: openshift-marketplace
+        source: redhat-operators
+        channel: release-2.1
+        installPlanApproval: Automatic
+        name: advanced-cluster-management
+
+registry:
+  pvc_storage_class: thin
+  pvc_name: registry
+  pvc_size: 30Gi
+  state: Managed
+  replicas: 2

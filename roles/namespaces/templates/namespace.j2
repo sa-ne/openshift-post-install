@@ -2,10 +2,16 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ namespace.name }}
-  labels:
 {% if namespace.labels is defined %}
+  labels:
 {% for label in namespace.labels %}
     {{ label.key }}: {{ label.value }}
 {% endfor %}
 {% endif %}
+{% if namespace.annotations is defined %}
+  annotations:
+{% for annotation in namespace.annotations %}
+    {{ annotation.key }}: {{ annotation.value }}
+{% endfor %}
+{% endif %} 
 spec: {}

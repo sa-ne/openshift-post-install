@@ -1,0 +1,123 @@
+- name: Fail if hub_kubeconfig is not Defined
+  fail:
+    msg: "hub_kubeconfig is not defined!"
+  when:
+    - acm.hub_kubeconfig is not defined
+  tags:
+    - acm-add-hub
+
+- name: Wait for ACM Operator
+  k8s_info:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    api_version: v1
+    kind: Pod
+    namespace: "{{ acm.hub_namespace }}"
+    label_selectors:
+      - name=multiclusterhub-operator
+  register: pod
+  retries: 72
+  delay: 5
+  until:
+    - pod.resources[0].status.phase == "Running"
+  tags:
+    - acm-add-hub
+
+- name: Create OCP Pull Secret
+  k8s:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/dockerconfigjson
+      metadata:
+        name: "{{ acm.hub_pull_secret_name }}"
+        namespace: "{{ acm.hub_namespace }}"
+      data:
+        .dockerconfigjson: "{{ openshift_pull_secret }}"
+  tags:
+    - acm-add-hub
+
+- name: Create MultiClusterHub Instance
+  k8s:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        namespace: "{{ acm.hub_namespace }}"
+        name: "{{ acm.hub_name }}"
+      spec:
+        imagePullSecret: "{{ acm.hub_pull_secret_name }}"
+        availabilityConfig: "{{ acm.hub_availability_config }}"
+  tags:
+    - acm-add-hub
+
+- name: Wait for MultiClusterHub
+  k8s_info:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    api_version: operator.open-cluster-management.io/v1
+    kind: MultiClusterHub
+    name: "{{ acm.hub_name }}"
+    namespace: "{{ acm.hub_namespace }}"
+  register: multiclusterhub
+  retries: 72
+  delay: 5
+  until:
+    - multiclusterhub.resources[0].status.phase == "Running"
+  tags:
+    - acm-add-hub
+
+- name: Find Management Ingress Deployment
+  k8s_info:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ acm.hub_namespace }}"
+    label_selectors:
+      - helm.sh/chart = management-ingress
+  register: ingress_deployment
+  when:
+    - acm.hub_apply_byo_tls
+  tags:
+    - acm-add-hub
+
+- debug:
+    var: ingress_deployment.resources[0].metadata.name
+  tags:
+    - acm-add-hub
+
+- name: Patch Management Ingress Deployment
+  k8s:
+    kubeconfig: "{{ acm.hub_kubeconfig }}"
+    state: present
+    merge_type: strategic-merge
+    resource_definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ ingress_deployment.resources[0].metadata.name }}"
+        namespace: "{{ acm.hub_namespace }}"
+      spec:
+        template:
+          spec:
+            containers:
+            - command:
+              - /management-ingress
+              - --default-ssl-certificate=$(POD_NAMESPACE)/{{ acm.hub_byo_ingress_tls_secret_name }}
+              - --configmap=$(POD_NAMESPACE)/{{ ingress_deployment.resources[0].metadata.name }}
+              - --http-port=8080
+              - --https-port=8443
+              name: "{{ ingress_deployment.resources[0].metadata.name }}"
+            volumes:
+            - name: tls-secret
+              secret:
+                defaultMode: 420
+                secretName: "{{ acm.hub_byo_ingress_tls_secret_name }}"
+            - name: ca-tls-secret
+              secret:
+                defaultMode: 420
+                secretName: "{{ acm.hub_byo_ca_cert_name }}"
+  tags:
+    - acm-add-hub

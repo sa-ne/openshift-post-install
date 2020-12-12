@@ -1,6 +1,6 @@
 ---
 oc_bin: "/home/chris/bin/oc"
-oc_kubeconfig: "/home/chris/upi/acm-managed-1/auth/kubeconfig"
+oc_kubeconfig: "/home/chris/upi/vmware-upi/auth/kubeconfig"
 
 oauth_ldap_ca_cert: /etc/ipa/ca.crt
 oauth_ldap_ca_cm_name: ca-config-map
@@ -49,23 +49,14 @@ nodes:
     labels:
       - "node-role.kubernetes.io/infra="
       - "node-role.kubernetes.io/worker-"
-    taints:
-      - infra=reserved:NoSchedule
-      - infra=reserved:NoExecute
   - name: infra-node1.vmware-upi.ocp.pwc.umbrella.local
     labels:
       - "node-role.kubernetes.io/infra="
       - "node-role.kubernetes.io/worker-"
-    taints:
-      - infra=reserved:NoSchedule
-      - infra=reserved:NoExecute
   - name: infra-node2.vmware-upi.ocp.pwc.umbrella.local
     labels:
       - "node-role.kubernetes.io/infra="
       - "node-role.kubernetes.io/worker-"
-    taints:
-      - infra=reserved:NoSchedule
-      - infra=reserved:NoExecute
 operators:
   - namespace:
       metadata:
@@ -184,9 +175,9 @@ localvolumes:
             values:
               - ''
     devicePaths:
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29dd540eb5aef62f18001928f5d
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c293a18b4552491777af63c9e384
-      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29c4383ca8af648b8ab247a104c
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29f550db8fb09ce7d26ad5810da
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c293f64e27f2ad6187eb7f1b1ffa
+      - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c295c6b4505fa6b84ab3b76c31d2
 storagecluster:
   name: storagecluster
   namespace: openshift-storage
@@ -196,10 +187,10 @@ storagecluster:
   osd_device_set_name: ocs-deviceset
   osd_device_set_count: 3
   osd_storage_class: localstorage-ocs-osd-sc
-  osd_pvc_size: 800Gi
+  osd_pvc_size: 1Ti
   osd_portable: false
 registry:
-  pvc_storage_class: storagecluster-cephfs
+  pvc_storage_class: ocs-storagecluster-cephfs
   pvc_name: registry
   pvc_size: 30Gi
   state: Managed

@@ -1,0 +1,197 @@
+---
+  oc_bin: "/home/chris/bin/oc"
+  oc_kubeconfig: "/home/chris/upi/alice/auth/kubeconfig"
+  
+  oauth_ldap_ca_cert: /etc/ipa/ca.crt
+  oauth_ldap_ca_cm_name: ca-config-map
+  oauth_ldap_url: ldap://idm1.umbrella.local/cn=users,cn=accounts,dc=umbrella,dc=local?uid
+  oauth_ldap_secret_name: ldap-secret
+  oauth_ldap_provider_name: "Umbrella IdM"
+  
+  cluster_name: alice
+  cluster_base_domain: ocp.pwc.umbrella.local
+  cluster_admin_users:
+    - chris
+  
+  ingress_replicas: 3
+  ingress_tls_secret_name: wildcard-cert
+  
+  api_tls_secret_name: api-cert
+  
+  additional_worker_mcp:
+    - name: infra
+      maxUnavailable: 1
+      label:
+        key: node-role.kubernetes.io/infra
+        value: "\"\""
+    - name: ocs
+      maxUnavailable: 1
+      label:
+        key: node-role.kubernetes.io/ocs
+        value: "\"\""
+  nodes:
+    - name: ocs-node0.alice.ocp.pwc.umbrella.local
+      labels:
+        - "cluster.ocs.openshift.io/openshift-storage="
+        - "node-role.kubernetes.io/ocs="
+        - "node-role.kubernetes.io/worker-"
+    - name: ocs-node1.alice.ocp.pwc.umbrella.local
+      labels:
+        - "cluster.ocs.openshift.io/openshift-storage="
+        - "node-role.kubernetes.io/ocs="
+        - "node-role.kubernetes.io/worker-"
+    - name: ocs-node2.alice.ocp.pwc.umbrella.local
+      labels:
+        - "cluster.ocs.openshift.io/openshift-storage="
+        - "node-role.kubernetes.io/ocs="
+        - "node-role.kubernetes.io/worker-"
+    - name: infra-node0.alice.ocp.pwc.umbrella.local
+      labels:
+        - "node-role.kubernetes.io/infra="
+        - "node-role.kubernetes.io/worker-"
+    - name: infra-node1.alice.ocp.pwc.umbrella.local
+      labels:
+        - "node-role.kubernetes.io/infra="
+        - "node-role.kubernetes.io/worker-"
+    - name: infra-node2.alice.ocp.pwc.umbrella.local
+      labels:
+        - "node-role.kubernetes.io/infra="
+        - "node-role.kubernetes.io/worker-"
+  operators:
+    - namespace:
+        metadata:
+          name: openshift-acm
+      operatorgroup:
+        metadata:
+          name: openshift-acm-operatorgroup
+          namespace: openshift-acm
+        spec:
+          targetNamespaces:
+            - openshift-acm
+      subscription:
+        metadata:
+          name: acm-operator-subscription
+          namespace: openshift-acm
+        spec:
+          sourceNamespace: openshift-marketplace
+          source: redhat-operators
+          channel: release-2.1
+          installPlanApproval: Automatic
+          name: advanced-cluster-management
+    - namespace:
+        metadata:
+          name: openshift-storage
+          labels:
+            openshift.io/cluster-monitoring: 'true'
+      operatorgroup:
+        metadata:
+          name: openshift-storage-operatorgroup
+          namespace: openshift-storage
+        spec:
+          targetNamespaces:
+            - openshift-storage
+      subscription:
+        metadata:
+          name: ocs-subscription
+          namespace: openshift-storage
+        spec:
+          channel: stable-4.5
+          name: ocs-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+    - namespace:
+        metadata:
+          name: openshift-local-storage
+      operatorgroup:
+        metadata:
+          name: openshift-local-storage-operatorgroup
+          namespace: openshift-local-storage
+        spec:
+          targetNamespaces:
+            - openshift-local-storage
+      subscription:
+        metadata:
+          name: local-storage-operator
+          namespace: openshift-local-storage
+        spec:
+          channel: '4.6'
+          name: local-storage-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+    - namespace:
+        metadata:
+          name: openshift-operators-redhat
+          labels:
+            openshift.io/cluster-monitoring: 'true'
+      operatorgroup:
+        metadata:
+          name: openshift-operators-redhat-operatorgroup
+          namespace: openshift-operators-redhat
+        spec: {}
+      subscription:
+        metadata:
+          generateName: 'elasticsearch-'
+          namespace: openshift-operators-redhat
+          name: elasticsearch-operator
+        spec:
+          channel: '4.6'
+          installPlanApproval: Automatic
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+          name: elasticsearch-operator
+    - namespace:
+        metadata:
+          name: openshift-logging
+          labels:
+            openshift.io/cluster-monitoring: "true"
+        spec:
+          nodeSelector:
+          node-role.kubernetes.io/infra: ''
+      operatorgroup:
+        metadata:
+          name: cluster-logging
+          namespace: openshift-logging
+        spec:
+          targetNamespaces:
+          - openshift-logging
+      subscription:
+        metadata:
+          name: cluster-logging
+          namespace: openshift-logging
+        spec:
+          channel: '4.6'
+          name: cluster-logging
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+  localvolumes:
+    - name: localstorage-ocs-osd
+      namespace: openshift-local-storage
+      storage_class_name: localstorage-ocs-osd-sc
+      volume_mode: Block
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: In
+              values:
+                - ''
+      devicePaths:
+        - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c29f550db8fb09ce7d26ad5810da
+        - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c293f64e27f2ad6187eb7f1b1ffa
+        - /dev/disk/by-id/scsi-SVMware_Virtual_disk_6000c295c6b4505fa6b84ab3b76c31d2
+  storagecluster:
+    name: storagecluster
+    namespace: openshift-storage
+    manage_nodes: false
+    mon_storage_class: thin
+    mon_pvc_size: 5Gi
+    osd_device_set_name: ocs-deviceset
+    osd_device_set_count: 3
+    osd_storage_class: localstorage-ocs-osd-sc
+    osd_pvc_size: 1Ti
+    osd_portable: false
+  registry:
+    pvc_storage_class: ocs-storagecluster-cephfs
+    pvc_name: registry
+    pvc_size: 30Gi
+    state: Managed
+    replicas: 2

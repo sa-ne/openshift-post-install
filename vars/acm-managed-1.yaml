@@ -19,7 +19,7 @@ ingress_tls_secret_name: wildcard-cert
 api_tls_secret_name: api-cert
 
 acm:
-  acm_hub_kubeconfig: /home/chris/upi/vmware-upi/auth/kubeconfig
+  acm_hub_kubeconfig: /home/chris/upi/alice/auth/kubeconfig
   spokes:
     - name: acm-managed-1
       kubeconfig: /home/chris/upi/acm-managed-1/auth/kubeconfig
