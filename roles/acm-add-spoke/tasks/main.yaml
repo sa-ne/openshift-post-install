@@ -60,8 +60,21 @@
   tags:
     - acm-add-spoke
 
-# Need to add logic to wait for import secret to get created...this can take
-# as long as 20 seconds after ManagedCluster CR is created.
+# Adding  logic to wait for import secret to get created.
+# It can take as long as 20 seconds after ManagedCluster CR is created.
+- name: Wait till the import secret is created
+  k8s_info:
+    kind: Secret
+    wait: yes
+    name: "{{ spoke.name }}-import"
+    namespace: "{{ spoke.name }}"
+    wait_sleep: 20
+    wait_timeout: 40
+  loop: "{{ acm.spokes }}"
+  loop_control:
+    loop_var: spoke
+  tags:
+    - acm-add-spoke
 
 - name: Gather Installation Payloads
   k8s_info:
